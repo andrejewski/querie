@@ -1,15 +1,8 @@
 {
   "name": "querie",
-  "version": "0.0.1",
   "description": "SQL query builder",
-  "main": "lib/index.js",
-  "scripts": {
-    "build": "babel src --out-dir lib",
-    "lint": "fixpack && prettier {src,test}/**/*.js --write && standard --fix",
-    "prepublishOnly": "npm run build",
-    "test": "npm run lint && ava"
-  },
-  "keywords": [],
+  "version": "0.0.1",
+  "author": "Chris Andrejewski <christopher.andrejewski@gmail.com> (http://chrisandrejewski.com)",
   "babel": {
     "presets": [
       "es2015",
@@ -19,8 +12,10 @@
   "bugs": {
     "url": "https://github.com/andrejewski/querie/issues"
   },
-  "author": "Chris Andrejewski <christopher.andrejewski@gmail.com> (http://chrisandrejewski.com)",
-  "license": "MIT",
+  "dependencies": {
+    "pg-escape": "^0.2.0",
+    "sql-template-strings": "^2.2.2"
+  },
   "devDependencies": {
     "ava": "^0.25.0",
     "babel-cli": "^6.24.1",
@@ -31,12 +26,18 @@
     "prettier": "^1.13.4",
     "standard": "^11.0.0"
   },
-  "dependencies": {
-    "pg-escape": "^0.2.0",
-    "sql-template-strings": "^2.2.2"
-  },
+  "homepage": "https://github.com/andrejewski/querie#readme",
+  "keywords": [],
+  "license": "MIT",
+  "main": "lib/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/andrejewski/querie.git"
+  },
+  "scripts": {
+    "build": "babel src --out-dir lib",
+    "lint": "fixpack && prettier {src,test}/**/*.js --write && standard --fix",
+    "prepublishOnly": "npm run build",
+    "test": "npm run lint && ava"
   }
 }

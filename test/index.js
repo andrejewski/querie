@@ -289,10 +289,7 @@ test('readme examples', t => {
   const bluePeopleInsert = createQuery({
     kind: 'insert',
     table: 'people',
-    values: [
-      { name: 'Chris', color: 'blue' },
-      { name: 'Kevin', color: 'blue' }
-    ]
+    values: [{ name: 'Chris', color: 'blue' }, { name: 'Kevin', color: 'blue' }]
   })
   t.deepEqual(
     stitch(bluePeopleInsert),
