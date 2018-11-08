@@ -6,7 +6,9 @@ function escapeIdentifier (identifier) {
   const isSensitiveAndNotEscaped =
     identifier !== identifier.toLowerCase() && identifier === escapedIdentifier
 
-  return isSensitiveAndNotEscaped ? `"${escapedIdentifier}"` : escapedIdentifier
+  return isSensitiveAndNotEscaped
+    ? `"${escapedIdentifier}"`
+    : escapedIdentifier
 }
 
 function getTableName (table) {
@@ -71,7 +73,9 @@ function insert ({ table, columns, values, returning }) {
 
   const baseQuery = sql`insert into `
     .append(
-      `${escapeIdentifier(getTableName(table))} (${dbColumns.join(', ')}) values `
+      `${escapeIdentifier(getTableName(table))} (${dbColumns.join(
+        ', '
+      )}) values `
     )
     .append(dbValues)
 
@@ -185,14 +189,14 @@ function select (options) {
     `${getMappedColumns(table, columns)} from ${getTableName(table)}`
   )
 
-  const orderByClause = getOrderByClause(options)
-  if (orderByClause) {
-    query = query.append(orderByClause)
-  }
-
   const whereClause = getWhereClause(options)
   if (whereClause) {
     query = query.append(whereClause)
+  }
+
+  const orderByClause = getOrderByClause(options)
+  if (orderByClause) {
+    query = query.append(orderByClause)
   }
 
   if (limit) {
@@ -240,7 +244,9 @@ function getAndConditions ({ table, and, _wrap }) {
           .append(sql`${value} and ${secondValue}`)
       }
 
-      return sql``.append(`${dbColumnName} ${operation} `).append(sql`${value}`)
+      return sql``
+        .append(`${dbColumnName} ${operation} `)
+        .append(sql`${value}`)
     })
 }
 
@@ -263,7 +269,9 @@ function getOrCondition ({ table, or }) {
 
 function formatWhere (where) {
   return Array.isArray(where)
-    ? Array.isArray(where[1]) ? where : [null, where]
+    ? Array.isArray(where[1])
+      ? where
+      : [null, where]
     : [where]
 }
 
