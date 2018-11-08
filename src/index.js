@@ -189,14 +189,14 @@ function select (options) {
     `${getMappedColumns(table, columns)} from ${getTableName(table)}`
   )
 
-  const orderByClause = getOrderByClause(options)
-  if (orderByClause) {
-    query = query.append(orderByClause)
-  }
-
   const whereClause = getWhereClause(options)
   if (whereClause) {
     query = query.append(whereClause)
+  }
+
+  const orderByClause = getOrderByClause(options)
+  if (orderByClause) {
+    query = query.append(orderByClause)
   }
 
   if (limit) {

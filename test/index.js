@@ -219,6 +219,28 @@ test('select with where complex 1 -- a || (b && c) || d', t => {
   )
 })
 
+test('select with where and order by', t => {
+  const query = createQuery({
+    kind: 'select',
+    table: 'people',
+    columns: ['name'],
+    where: {
+      color: ['=', 'blue']
+    },
+    orderBy: [
+      {
+        column: 'name',
+        sort: 'asc'
+      }
+    ]
+  })
+
+  t.deepEqual(
+    query,
+    sql`select name from people where color = ${'blue'} order by name asc`
+  )
+})
+
 test('update with where', t => {
   const query = createQuery({
     kind: 'update',
