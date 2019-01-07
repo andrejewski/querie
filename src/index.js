@@ -238,6 +238,13 @@ function getAndConditions ({ table, and, _wrap }) {
       }
 
       const lowOperation = operation.toLowerCase()
+      if (lowOperation === '= any') {
+        return sql``
+          .append(`${dbColumnName} = any (`)
+          .append(sql`${value}`)
+          .append(')')
+      }
+
       if (lowOperation === 'between' || lowOperation === 'not between') {
         return sql``
           .append(`${dbColumnName} ${operation}`)
