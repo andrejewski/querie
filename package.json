@@ -1,7 +1,7 @@
 {
   "name": "querie",
   "description": "SQL query builder",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "Chris Andrejewski <christopher.andrejewski@gmail.com> (http://chrisandrejewski.com)",
   "babel": {
     "presets": [
