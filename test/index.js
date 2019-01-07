@@ -146,6 +146,22 @@ test('select with simple where', t => {
   t.deepEqual(query, sql`select name from people where female = ${false}`)
 })
 
+test('select with where = any', t => {
+  const query = createQuery({
+    kind: 'select',
+    table: 'people',
+    columns: ['name'],
+    where: {
+      hats: ['= any', ['blue', 'red']]
+    }
+  })
+
+  t.deepEqual(
+    query,
+    sql`select name from people where hats = any (${['blue', 'red']})`
+  )
+})
+
 test('select with where and', t => {
   const query = createQuery({
     kind: 'select',
