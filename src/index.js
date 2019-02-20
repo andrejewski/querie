@@ -210,68 +210,34 @@ function select (options) {
   return query
 }
 
-function wrap (sqlFragment) {
-  return sql`(`.append(sqlFragment).append(')')
-}
+function buildCondition ({ field, operation, value, secondValue }) {
+  if (value === null) {
+    const isNull = operation === '='
+    if (isNull) {
+      return sql``.append(`${field} is null`)
+    }
 
-function getAndConditions ({ table, and, _wrap }) {
-  const andEntries = and ? Object.entries(and) : []
-  return andEntries
-    .filter(entry => {
-      const hasValue = entry[1][1] !== undefined
-      return hasValue
-    })
-    .map(([columnName, op]) => {
-      const dbColumnName = getTableColumnName(table, columnName)
-      const [operation, value, secondValue] = op
-
-      if (value === null) {
-        const isNull = operation === '='
-        if (isNull) {
-          return sql``.append(`${dbColumnName} is null`)
-        }
-
-        const isNotNull = operation === '!=' || operation === '<>'
-        if (isNotNull) {
-          return sql``.append(`${dbColumnName} is not null`)
-        }
-      }
-
-      const lowOperation = operation.toLowerCase()
-      if (lowOperation === '= any') {
-        return sql``
-          .append(`${dbColumnName} = any (`)
-          .append(sql`${value}`)
-          .append(')')
-      }
-
-      if (lowOperation === 'between' || lowOperation === 'not between') {
-        return sql``
-          .append(`${dbColumnName} ${operation}`)
-          .append(sql`${value} and ${secondValue}`)
-      }
-
-      return sql``
-        .append(`${dbColumnName} ${operation} `)
-        .append(sql`${value}`)
-    })
-}
-
-function getOrCondition ({ table, or }) {
-  const hasConditions = Array.isArray(or) && or.length > 0
-  if (!hasConditions) {
-    return null
+    const isNotNull = operation === '!=' || operation === '<>'
+    if (isNotNull) {
+      return sql``.append(`${field} is not null`)
+    }
   }
 
-  const orConditions = or
-    .map(where => getWhereCondition({ table, where, _inner: true }))
-    .filter(x => x)
-
-  if (!orConditions.length) {
-    return null
+  const lowOperation = operation.toLowerCase()
+  if (lowOperation === '= any') {
+    return sql``
+      .append(`${field} = any (`)
+      .append(sql`${value}`)
+      .append(')')
   }
 
-  return sqlJoin(orConditions, ' or ')
+  if (lowOperation === 'between' || lowOperation === 'not between') {
+    return sql``
+      .append(`${field} ${operation}`)
+      .append(sql`${value} and ${secondValue}`)
+  }
+
+  return sql``.append(`${field} ${operation} `).append(sql`${value}`)
 }
 
 function formatWhere (where) {
@@ -282,27 +248,76 @@ function formatWhere (where) {
     : [where]
 }
 
-function getWhereCondition ({ table, where, _inner }) {
-  const [and, or] = formatWhere(where)
-  const conditions = getAndConditions({ table, and })
-
-  let orCondition = getOrCondition({ table, or })
-  if (orCondition) {
-    const shouldWrap = conditions.length
-    if (shouldWrap) {
-      orCondition = wrap(orCondition)
+function rewriteSimpleWhere (simpleWhere) {
+  const [and, or] = formatWhere(simpleWhere)
+  const andConditions = and
+    ? Object.keys(and)
+      .filter(field => and[field] !== undefined)
+      .map(field => {
+        const [op, value, secondValue] = and[field]
+        return [op, field, value, secondValue]
+      })
+    : null
+  const orConditions = (or || []).map(rewriteSimpleWhere)
+  const orBranch = orConditions.length > 0 ? ['or', orConditions] : null
+  if (andConditions && andConditions.length > 0) {
+    if (orBranch) {
+      andConditions.push(orBranch)
     }
-
-    conditions.push(orCondition)
+    return ['and', andConditions]
   }
+
+  return orBranch || ['or', []]
+}
+
+function buildConditions ({ table, where }) {
+  const [operation, columnName, value, secondValue] = where
+  if (operation === 'or' || operation === 'and') {
+    return [
+      operation,
+      where[1].map(where => buildConditions({ table, where }))
+    ]
+  }
+
+  const field = getTableColumnName(table, columnName)
+  return buildCondition({
+    field,
+    operation,
+    value,
+    secondValue
+  })
+}
+
+function wrap (sqlFragment) {
+  return sql`(`.append(sqlFragment).append(')')
+}
+
+function joinConditions (condition, _inner) {
+  if (!Array.isArray(condition)) {
+    return condition
+  }
+
+  const [grouping, conditions] = condition
 
   if (!conditions.length) {
     return null
   }
 
-  const query = sqlJoin(conditions, ' and ')
+  const query = sqlJoin(
+    conditions.map(c => joinConditions(c, true)),
+    ` ${grouping} `
+  )
   const shouldWrap = _inner && conditions.length > 1
   return shouldWrap ? wrap(query) : query
+}
+
+function getWhereCondition ({ table, where }) {
+  const isOperatorTag = Array.isArray(where) && typeof where[0] === 'string'
+  if (!isOperatorTag) {
+    where = rewriteSimpleWhere(where)
+  }
+
+  return joinConditions(buildConditions({ table, where }))
 }
 
 function getWhereClause (options) {
