@@ -210,7 +210,7 @@ function select (options) {
   return query
 }
 
-function buildCondition ({ field, operation, value, secondValue }) {
+function buildCondition ({ field, operation, value }) {
   if (value === null) {
     const isNull = operation === '='
     if (isNull) {
@@ -232,9 +232,10 @@ function buildCondition ({ field, operation, value, secondValue }) {
   }
 
   if (lowOperation === 'between' || lowOperation === 'not between') {
+    const [firstValue, secondValue] = value
     return sql``
       .append(`${field} ${operation}`)
-      .append(sql`${value} and ${secondValue}`)
+      .append(sql`${firstValue} and ${secondValue}`)
   }
 
   return sql``.append(`${field} ${operation} `).append(sql`${value}`)
@@ -254,8 +255,8 @@ function rewriteSimpleWhere (simpleWhere) {
     ? Object.keys(and)
       .filter(field => and[field] !== undefined)
       .map(field => {
-        const [op, value, secondValue] = and[field]
-        return [op, field, value, secondValue]
+        const [op, value] = and[field]
+        return [op, field, value]
       })
     : null
   const orConditions = (or || []).map(rewriteSimpleWhere)
@@ -271,7 +272,7 @@ function rewriteSimpleWhere (simpleWhere) {
 }
 
 function buildConditions ({ table, where }) {
-  const [operation, columnName, value, secondValue] = where
+  const [operation, columnName, value] = where
   if (operation === 'or' || operation === 'and') {
     return [
       operation,
@@ -283,8 +284,7 @@ function buildConditions ({ table, where }) {
   return buildCondition({
     field,
     operation,
-    value,
-    secondValue
+    value
   })
 }
 
