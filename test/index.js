@@ -235,6 +235,58 @@ test('select with where complex 1 -- a || (b && c) || d', t => {
   )
 })
 
+test('select with extended where -- and', t => {
+  const query = createQuery({
+    kind: 'select',
+    table: 'people',
+    columns: ['name'],
+    where: ['and', [['>', 'age', 4], ['<', 'age', 8]]]
+  })
+
+  t.deepEqual(
+    query,
+    sql`select name from people where age > ${4} and age < ${8}`
+  )
+})
+
+test('select with extended where -- or', t => {
+  const query = createQuery({
+    kind: 'select',
+    table: 'people',
+    columns: ['name'],
+    where: ['or', [['>', 'age', 4], ['<', 'age', 8]]]
+  })
+
+  t.deepEqual(
+    query,
+    sql`select name from people where age > ${4} or age < ${8}`
+  )
+})
+
+test('select with extended where -- mixed', t => {
+  const query = createQuery({
+    kind: 'select',
+    table: 'people',
+    columns: ['name'],
+    where: [
+      'or',
+      [
+        [
+          'and',
+          [['=', 'name', 'Chris'], ['or', [['=', 'age', 5], ['=', 'age', 12]]]]
+        ],
+        ['>', 'age', 4],
+        ['<', 'age', 8]
+      ]
+    ]
+  })
+
+  t.deepEqual(
+    query,
+    sql`select name from people where (name = ${'Chris'} and (age = ${5} or age = ${12})) or age > ${4} or age < ${8}`
+  )
+})
+
 test('select with where and order by', t => {
   const query = createQuery({
     kind: 'select',
