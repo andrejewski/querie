@@ -133,6 +133,16 @@ test('select multiple columns', t => {
   t.deepEqual(query, sql`select name, female from people`)
 })
 
+test('select with escaped table name', t => {
+  const query = createQuery({
+    kind: 'select',
+    table: 'user',
+    columns: ['id']
+  })
+
+  t.deepEqual(query, sql`select id from "user"`)
+})
+
 test('select with simple where', t => {
   const query = createQuery({
     kind: 'select',
