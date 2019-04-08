@@ -12,7 +12,8 @@ function escapeIdentifier (identifier) {
 }
 
 function getTableName (table) {
-  return typeof table === 'string' ? table : table.name
+  const name = typeof table === 'string' ? table : table.name
+  return escapeIdentifier(name)
 }
 
 function getTableColumnName (table, columnName) {
@@ -72,11 +73,7 @@ function insert ({ table, columns, values, returning }) {
   const dbValues = sqlJoin(dbListRows, ', ')
 
   const baseQuery = sql`insert into `
-    .append(
-      `${escapeIdentifier(getTableName(table))} (${dbColumns.join(
-        ', '
-      )}) values `
-    )
+    .append(`${getTableName(table)} (${dbColumns.join(', ')}) values `)
     .append(dbValues)
 
   const returningClause = getReturningClause({ table, returning })
